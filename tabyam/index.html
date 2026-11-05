@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tabyam - use your touchpad as a tablet on Linux</title>
+    <meta name="description" content="Tabyam turns a laptop touchpad into an absolute-positioning tablet on Linux, built for osu!lazer. Area selection, instant tap, and a tray icon.">
+    <link rel="canonical" href="http://yuri-thighs.mom/tabyam/">
+    <meta property="og:title" content="tabyam">
+    <meta property="og:description" content="Use your laptop touchpad as a tablet on Linux, built for osu!lazer.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="../content/icon.jpg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* im gay so i add style */
+        :root {
+            --background: #edf8f0;
+            --surface: #f8fff9;
+            --text: #26352b;
+            --title: #141a16;
+            --muted: #7d8981;
+            --line: #cbd8ce;
+            --green: #4ca875;
+            --green-dark: #367b53;
+            --logo-bg: #d6dbd7;
+        }
+
+        body.dark {
+            --background: #111a15;
+            --surface: #18231c;
+            --text: #e5eee7;
+            --title: #ffffff;
+            --muted: #849088;
+            --line: #34443a;
+            --green: #68c58e;
+            --green-dark: #4eaa75;
+            --logo-bg: transparent;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--background);
+            color: var(--text);
+            font-family: "Montserrat", sans-serif;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .page {
+            width: min(900px, calc(100% - 40px));
+            margin: auto;
+            padding: 65px 0;
+        }
+
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 92%;
+            margin: 0 auto;
+        }
+
+        .title {
+            margin: 0;
+            color: var(--title);
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+        }
+
+        .theme-button {
+            padding: 7px 12px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .theme-button:hover {
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        .top-line {
+            width: 92%;
+            height: 1px;
+            margin: 10px auto 40px;
+            background: var(--line);
+        }
+
+        .intro {
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+            margin-bottom: 45px;
+        }
+
+        .logo-box {
+            width: 150px;
+            height: 150px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            border-radius: 4px;
+            background: var(--logo-bg);
+            transition: background 0.25s ease;
+        }
+
+        .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .bio {
+            flex: 1;
+        }
+
+        .bio h2 {
+            margin: 0 0 12px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .bio p {
+            margin: 0 0 12px;
+            max-width: 620px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .line {
+            width: 100%;
+            height: 1px;
+            margin: 35px 0;
+            background: var(--line);
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        section h2 {
+            margin: 0 0 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .links a {
+            padding: 8px 13px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            color: var(--green-dark);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .links a:hover {
+            background: var(--surface);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .commits {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .commit {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            color: var(--text);
+            text-decoration: none;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .commit:hover {
+            background: var(--surface);
+            border-color: var(--green);
+        }
+
+        .commit-message {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .commit-meta {
+            flex-shrink: 0;
+            color: var(--muted);
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .status {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .back {
+            display: block;
+            width: fit-content;
+            margin: 60px auto 16px;
+            padding: 10px 18px;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            color: var(--green-dark);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .back:hover {
+            background: var(--surface);
+            border-color: var(--green);
+        }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                width: calc(100% - 28px);
+                padding: 45px 0;
+            }
+
+            .top {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .title {
+                font-size: 32px;
+            }
+
+            .intro {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .bio p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .links {
+                justify-content: center;
+            }
+
+            .commit {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <!-- aoi dih -->
+        <header class="top">
+            <h1 class="title">tabyam</h1>
+            <button class="theme-button" id="themeToggle">switch to dark</button>
+        </header>
+
+        <div class="top-line"></div>
+
+        <!-- the bleh of an icon -->
+        <div class="intro">
+            <div class="logo-box">
+                <img src="logo.svg" alt="Tabyam logo">
+            </div>
+
+            <div class="bio">
+                <h2>Your touchpad, as a tablet.</h2>
+
+                <p>
+                    Tabyam is designed to make your laptop trackpad function like a drawing tablet,
+                    featuring absolute positioning and area mapping.
+                </p>
+
+                <p>
+                    The premise of Tabyam is that wherever you put your finger in the trackpad, it
+                    instantly moves your cursor to that spot just like a drawing tablet. A useful
+                    feature I included is area mapping, which lets you choose what part of the
+                    trackpad you want to put to use. And another useful feature I added is a
+                    Tap-To-Click toggle, meaning your finger doesn't necessarily have to click when
+                    you land it on the trackpad, on by default.
+                </p>
+
+                <p>
+                    The project's source code is currently a Linux special and a Windows release is
+                    on the works.
+                </p>
+
+                <p>
+                    Project made with love for osu! players and for digital artists as an affordable
+                    drawing tablet alternative.
+                </p>
+            </div>
+        </div>
+
+        <div class="line"></div>
+
+        <!-- acquire here -->
+        <section>
+            <h2>get it</h2>
+
+            <div class="links">
+                <a href="https://github.com/ieatomfboorg/tabyam" target="_blank" rel="noopener noreferrer">github repo</a>
+                <a href="https://github.com/ieatomfboorg/tabyam/releases/latest" target="_blank" rel="noopener noreferrer">latest release</a>
+            </div>
+        </section>
+
+        <div class="line"></div>
+
+        <section>
+            <h2>latest commits</h2>
+            <div class="commits" id="commits">
+                <span class="status">loading commits...</span>
+            </div>
+        </section>
+
+        <!-- hehe -->
+        <a href="/" class="back">back to yuri-thighs.mom</a>
+
+        <footer>© yuri-thighs.mom</footer>
+    </div>
+
+    <script>
+        // theme
+        var body = document.body;
+        var toggle = document.getElementById("themeToggle");
+
+        function applyTheme(dark) {
+            body.classList.toggle("dark", dark);
+            toggle.textContent = dark ? "switch to light" : "switch to dark";
+        }
+
+        var saved = null;
+        try {
+            saved = localStorage.getItem("theme");
+        } catch (e) {}
+
+        applyTheme(saved === "dark");
+
+        toggle.addEventListener("click", function () {
+            var dark = !body.classList.contains("dark");
+            applyTheme(dark);
+            try {
+                localStorage.setItem("theme", dark ? "dark" : "light");
+            } catch (e) {}
+        });
+
+        // commits
+        var list = document.getElementById("commits");
+
+        fetch("https://api.github.com/repos/ieatomfboorg/tabyam/commits?per_page=5")
+            .then(function (r) {
+                if (!r.ok) throw new Error("bad response");
+                return r.json();
+            })
+            .then(function (commits) {
+                list.textContent = "";
+                commits.forEach(function (c) {
+                    var a = document.createElement("a");
+                    a.className = "commit";
+                    a.href = c.html_url;
+                    a.target = "_blank";
+                    a.rel = "noopener noreferrer";
+
+                    var msg = document.createElement("span");
+                    msg.className = "commit-message";
+                    msg.textContent = c.commit.message.split("\n")[0];
+
+                    var meta = document.createElement("span");
+                    meta.className = "commit-meta";
+                    meta.textContent = c.sha.slice(0, 7) + " · " + new Date(c.commit.author.date).toLocaleDateString();
+
+                    a.appendChild(msg);
+                    a.appendChild(meta);
+                    list.appendChild(a);
+                });
+            })
+            .catch(function () {
+                list.innerHTML = '<span class="status">Could not load commits. See them on <a href="https://github.com/ieatomfboorg/tabyam/commits" style="color:var(--green-dark)">GitHub</a>.</span>';
+            });
+    </script>
+</body>
+</html>
